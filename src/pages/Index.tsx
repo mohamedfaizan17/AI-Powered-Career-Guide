@@ -1,7 +1,10 @@
 import { useState } from "react";
+import { Navigation } from "@/components/Navigation";
 import { HeroSection } from "@/components/HeroSection";
 import { SkillsAssessment } from "@/components/SkillsAssessment";
-import { CareerRecommendations } from "@/components/CareerRecommendations";
+import { EnhancedCareerRecommendations } from "@/components/EnhancedCareerRecommendations";
+import { MarketIntelligence } from "@/components/MarketIntelligence";
+import { LearningPaths } from "@/components/LearningPaths";
 
 interface AssessmentData {
   skills: Array<{ name: string; level: number }>;
@@ -10,35 +13,71 @@ interface AssessmentData {
 }
 
 const Index = () => {
-  const [currentStep, setCurrentStep] = useState<'hero' | 'assessment' | 'recommendations'>('hero');
+  const [currentPage, setCurrentPage] = useState<string>('hero');
   const [assessmentData, setAssessmentData] = useState<AssessmentData | null>(null);
+  const [hasCompletedAssessment, setHasCompletedAssessment] = useState(false);
 
   const handleGetStarted = () => {
-    setCurrentStep('assessment');
-    // Smooth scroll to top
+    setCurrentPage('assessment');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleAssessmentComplete = (data: AssessmentData) => {
     setAssessmentData(data);
-    setCurrentStep('recommendations');
-    // Smooth scroll to top
+    setHasCompletedAssessment(true);
+    setCurrentPage('careers');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleNavigate = (page: string) => {
+    if (page === 'dashboard') {
+      setCurrentPage(hasCompletedAssessment ? 'careers' : 'hero');
+    } else if (page === 'careers' && !hasCompletedAssessment) {
+      setCurrentPage('assessment');
+    } else {
+      setCurrentPage(page);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const renderContent = () => {
+    switch (currentPage) {
+      case 'hero':
+        return <HeroSection onGetStarted={handleGetStarted} />;
+      
+      case 'assessment':
+        return <SkillsAssessment onComplete={handleAssessmentComplete} />;
+      
+      case 'careers':
+        return assessmentData ? (
+          <EnhancedCareerRecommendations assessmentData={assessmentData} />
+        ) : (
+          <HeroSection onGetStarted={handleGetStarted} />
+        );
+      
+      case 'learning':
+        return <LearningPaths userSkills={assessmentData?.skills} />;
+      
+      case 'market':
+        return <MarketIntelligence />;
+      
+      default:
+        return <HeroSection onGetStarted={handleGetStarted} />;
+    }
+  };
+
+  const showNavigation = currentPage !== 'hero';
+
   return (
     <div className="min-h-screen bg-background">
-      {currentStep === 'hero' && (
-        <HeroSection onGetStarted={handleGetStarted} />
+      {showNavigation && (
+        <Navigation 
+          currentPage={currentPage} 
+          onNavigate={handleNavigate} 
+        />
       )}
       
-      {currentStep === 'assessment' && (
-        <SkillsAssessment onComplete={handleAssessmentComplete} />
-      )}
-      
-      {currentStep === 'recommendations' && assessmentData && (
-        <CareerRecommendations assessmentData={assessmentData} />
-      )}
+      {renderContent()}
     </div>
   );
 };
