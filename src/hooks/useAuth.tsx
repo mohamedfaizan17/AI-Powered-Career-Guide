@@ -1,14 +1,12 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { signUp as authSignUp, signIn as authSignIn, getCurrentUser, User } from '@/lib/auth-client';
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, firstName?: string, lastName?: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signOut: () => Promise<{ error: any }>;
+  signUp: (email: string, password: string, firstName?: string, lastName?: string) => Promise<{ error?: string }>;
+  signIn: (email: string, password: string) => Promise<{ error?: string }>;
+  signOut: () => Promise<{ error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,62 +25,74 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+    // Check for existing token on mount
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      getCurrentUser(token).then((user) => {
+        setUser(user);
         setLoading(false);
-      }
-    );
-
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+      }).catch(() => {
+        localStorage.removeItem('auth_token');
+        setLoading(false);
+      });
+    } else {
       setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    }
   }, []);
 
   const signUp = async (email: string, password: string, firstName?: string, lastName?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          first_name: firstName,
-          last_name: lastName,
-        }
+    try {
+      const result = await authSignUp(email, password, firstName, lastName);
+      
+      if (result.error) {
+        return { error: result.error };
       }
-    });
-    return { error };
+
+      if (result.user && result.token) {
+        localStorage.setItem('auth_token', result.token);
+        setUser(result.user);
+      }
+
+      return {};
+    } catch (error) {
+      return { error: 'An unexpected error occurred' };
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { error };
+    try {
+      const result = await authSignIn(email, password);
+      
+      if (result.error) {
+        return { error: result.error };
+      }
+
+      if (result.user && result.token) {
+        localStorage.setItem('auth_token', result.token);
+        setUser(result.user);
+      }
+
+      return {};
+    } catch (error) {
+      return { error: 'An unexpected error occurred' };
+    }
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    return { error };
+    try {
+      localStorage.removeItem('auth_token');
+      setUser(null);
+      return {};
+    } catch (error) {
+      return { error: 'Failed to sign out' };
+    }
   };
 
   const value = {
     user,
-    session,
     loading,
     signUp,
     signIn,

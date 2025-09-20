@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   BookOpen, 
   Clock, 
@@ -13,8 +14,13 @@ import {
   Trophy,
   Users,
   AlertCircle,
-  ExternalLink
+  ExternalLink,
+  Loader2,
+  Check,
+  Brain
 } from "lucide-react";
+import { generateLearningRecommendations, type LearningRecommendation, type UserProfile } from "@/lib/gemini";
+import { getCourseRecommendations, getCourseRecommendationsEnhanced, generateEnrollmentUrl, type Course } from "@/lib/course-providers";
 
 // Mock learning paths - In production, integrated with course APIs
 const learningPaths = {
@@ -104,36 +110,74 @@ const supplementaryContent = [
     title: "2024 AI Career Roadmap",
     source: "Medium",
     readTime: "8 min",
-    rating: 4.6
+    rating: 4.6,
+    url: "https://medium.com/search?q=AI+career+roadmap+2024",
+    description: "Complete guide to building a career in AI and machine learning"
   },
   {
     type: "Video",
     title: "System Design Interview Prep",
     source: "YouTube",
     readTime: "45 min",
-    rating: 4.8
+    rating: 4.8,
+    url: "https://www.youtube.com/results?search_query=system+design+interview+preparation",
+    description: "Essential system design concepts for tech interviews"
   },
   {
     type: "Podcast",
     title: "Tech Career Growth Strategies",
     source: "Spotify",
     readTime: "32 min",
-    rating: 4.7
+    rating: 4.7,
+    url: "https://open.spotify.com/search/tech%20career%20growth",
+    description: "Expert advice on advancing your technology career"
   }
 ];
 
 interface LearningPathsProps {
   userSkills?: Array<{ name: string; level: number }>;
+  userInterests?: string[];
+  userExperience?: string;
 }
 
-export const LearningPaths = ({ userSkills = [] }: LearningPathsProps) => {
+export const LearningPaths = ({ userSkills = [], userInterests = [], userExperience = "" }: LearningPathsProps) => {
   const [selectedPath, setSelectedPath] = useState<string>("AI/ML Engineer");
+  const [aiRecommendations, setAiRecommendations] = useState<LearningRecommendation[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const calculateProgress = (pathKey: string) => {
     const path = learningPaths[pathKey as keyof typeof learningPaths];
     const completedCourses = path.courses.filter(course => course.completed).length;
     return (completedCourses / path.courses.length) * 100;
   };
+
+  const fetchAIRecommendations = async () => {
+    if (userSkills.length === 0) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const userProfile: UserProfile = {
+        skills: userSkills,
+        interests: userInterests,
+        experience: userExperience
+      };
+      
+      const recommendations = await generateLearningRecommendations(userProfile);
+      setAiRecommendations(recommendations);
+    } catch (err) {
+      setError('Failed to generate AI learning recommendations');
+      console.error('Error fetching learning recommendations:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAIRecommendations();
+  }, [userSkills, userInterests, userExperience]);
 
   return (
     <div className="min-h-screen bg-secondary py-8">
@@ -145,24 +189,262 @@ export const LearningPaths = ({ userSkills = [] }: LearningPathsProps) => {
           </p>
         </div>
 
-        {/* API Integration Notice */}
-        <Card className="mb-8 border-warning/20 bg-warning/5">
+        {/* AI Learning Status */}
+        <Card className="mb-8 border-primary/20 bg-gradient-secondary shadow-medium">
           <CardContent className="p-6">
             <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-warning mt-0.5" />
+              <Brain className="h-6 w-6 text-primary mt-0.5" />
               <div>
-                <h3 className="font-semibold text-foreground mb-2">Enhanced Learning Integration</h3>
+                <h3 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                  AI-Powered Learning Recommendations
+                  <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                    Powered by Gemini AI
+                  </Badge>
+                </h3>
                 <p className="text-muted-foreground mb-3">
-                  Currently showing curated content. Connect to Supabase to integrate with Coursera API, 
-                  edX API, YouTube Data API, and Medium API for real-time course recommendations and progress tracking.
+                  {import.meta.env.VITE_GEMINI_API_KEY 
+                    ? "Personalized course recommendations generated using Gemini AI based on your skills, interests, and career goals."
+                    : "Using curated learning paths. Add your Gemini API key to unlock AI-powered personalized course recommendations."
+                  }
                 </p>
-                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                  Requires Supabase Integration
+                <Badge 
+                  variant="outline" 
+                  className={import.meta.env.VITE_GEMINI_API_KEY 
+                    ? "bg-success/10 text-success border-success/20" 
+                    : "bg-warning/10 text-warning border-warning/20"
+                  }
+                >
+                  {import.meta.env.VITE_GEMINI_API_KEY ? (
+                    <>
+                      <Check className="h-3 w-3 mr-1" />
+                      AI Recommendations Active
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      Add API Key for AI Features
+                    </>
+                  )}
                 </Badge>
               </div>
             </div>
           </CardContent>
         </Card>
+
+        {/* AI Recommendations Section */}
+        {import.meta.env.VITE_GEMINI_API_KEY && aiRecommendations.length > 0 && (
+          <Card className="mb-8 shadow-medium">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="h-5 w-5 text-primary" />
+                AI-Generated Learning Recommendations
+              </CardTitle>
+              <CardDescription>
+                Personalized course suggestions based on your profile analysis
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {(() => {
+                  let globalCourseIndex = 0; // Track global course numbering
+                  
+                  return aiRecommendations.map((recommendation, index) => (
+                    <div key={index} className="space-y-4">
+                      <h4 className="font-semibold text-lg text-primary mb-3 flex items-center gap-2">
+                        <Brain className="h-4 w-4" />
+                        {recommendation.skill} Learning Path
+                      </h4>
+                      {(() => {
+                        // Get real course data for this skill
+                        console.log('Looking for courses for skill:', recommendation.skill);
+                        const realCourses = getCourseRecommendationsEnhanced(recommendation.skill);
+                        console.log('Found real courses:', realCourses.length, realCourses);
+                        
+                        if (realCourses.length > 0) {
+                          // Use real course data
+                          return realCourses.map((course, courseIndex) => {
+                            const currentGlobalIndex = ++globalCourseIndex;
+                            return (
+                          <Card key={courseIndex} className="shadow-medium">
+                            <CardContent className="p-6">
+                              <div className="flex items-start justify-between">
+                                <div className="flex items-start gap-4">
+                                  <div className="w-8 h-8 rounded-full flex items-center justify-center bg-primary text-primary-foreground">
+                                    <span className="text-sm font-bold">{currentGlobalIndex}</span>
+                                  </div>
+                                  <div className="flex-1">
+                                    <h3 className="text-lg font-semibold mb-2">{course.title}</h3>
+                                    <p className="text-muted-foreground mb-3">{course.description}</p>
+                                    
+                                    <div className="flex items-center gap-4 mb-3">
+                                      <Badge variant="outline">{course.provider}</Badge>
+                                      <span className="text-sm text-muted-foreground flex items-center gap-1">
+                                        <Clock className="h-3 w-3" />
+                                        {course.duration}
+                                      </span>
+                                      <span className="text-sm text-muted-foreground flex items-center gap-1">
+                                        <Star className="h-3 w-3 fill-current text-yellow-500" />
+                                        {course.rating}
+                                      </span>
+                                      <span className="text-sm text-muted-foreground flex items-center gap-1">
+                                        <Users className="h-3 w-3" />
+                                        {course.enrolled.toLocaleString()}
+                                      </span>
+                                    </div>
+
+                                    <div className="flex flex-wrap gap-2">
+                                      {course.skills.map((skill) => (
+                                        <Badge 
+                                          key={skill} 
+                                          variant="secondary"
+                                          className={
+                                            userSkills.some(s => s.name === skill) 
+                                              ? "bg-success/20 text-success" 
+                                              : ""
+                                          }
+                                        >
+                                          {skill}
+                                          {userSkills.some(s => s.name === skill) && (
+                                            <CheckCircle className="h-3 w-3 ml-1" />
+                                          )}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="flex flex-col gap-2">
+                                  <Button 
+                                    size="sm" 
+                                    className="bg-gradient-primary"
+                                    onClick={() => {
+                                      const enrollUrl = generateEnrollmentUrl(course);
+                                      window.open(enrollUrl, '_blank');
+                                    }}
+                                  >
+                                    <Play className="h-4 w-4 mr-2" />
+                                    Start Course
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={() => {
+                                      const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(course.title + ' preview')}`;
+                                      window.open(searchUrl, '_blank');
+                                    }}
+                                  >
+                                    <ExternalLink className="h-4 w-4 mr-2" />
+                                    Preview
+                                  </Button>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                            );
+                          });
+                      } else {
+                        // Use AI recommendation data with fallback values
+                        return recommendation.courses.map((course, courseIndex) => {
+                          const currentGlobalIndex = ++globalCourseIndex;
+                          return (
+                          <Card key={courseIndex} className="shadow-medium">
+                            <CardContent className="p-6">
+                              <div className="flex items-start justify-between">
+                                <div className="flex items-start gap-4">
+                                  <div className="w-8 h-8 rounded-full flex items-center justify-center bg-primary text-primary-foreground">
+                                    <span className="text-sm font-bold">{currentGlobalIndex}</span>
+                                  </div>
+                                  <div className="flex-1">
+                                    <h3 className="text-lg font-semibold mb-2">{course.title}</h3>
+                                    <p className="text-muted-foreground mb-3">{course.description}</p>
+                                    
+                                    <div className="flex items-center gap-4 mb-3">
+                                      <Badge variant="outline">{course.provider}</Badge>
+                                      <span className="text-sm text-muted-foreground flex items-center gap-1">
+                                        <Clock className="h-3 w-3" />
+                                        {course.duration}
+                                      </span>
+                                      <span className="text-sm text-muted-foreground flex items-center gap-1">
+                                        <Star className="h-3 w-3 fill-current text-yellow-500" />
+                                        4.8
+                                      </span>
+                                      <span className="text-sm text-muted-foreground flex items-center gap-1">
+                                        <Users className="h-3 w-3" />
+                                        125,000
+                                      </span>
+                                    </div>
+
+                                    <div className="flex flex-wrap gap-2">
+                                      {['Python', 'Statistics', 'Linear Algebra'].map((skill) => (
+                                        <Badge 
+                                          key={skill} 
+                                          variant="secondary"
+                                          className={
+                                            userSkills.some(s => s.name === skill) 
+                                              ? "bg-success/20 text-success" 
+                                              : ""
+                                          }
+                                        >
+                                          {skill}
+                                          {userSkills.some(s => s.name === skill) && (
+                                            <CheckCircle className="h-3 w-3 ml-1" />
+                                          )}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="flex flex-col gap-2">
+                                  <Button 
+                                    size="sm" 
+                                    className="bg-gradient-primary"
+                                    onClick={() => {
+                                      const searchQuery = `${recommendation.skill} ${course.title}`;
+                                      const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery + ' course')}`;
+                                      window.open(searchUrl, '_blank');
+                                    }}
+                                  >
+                                    <Play className="h-4 w-4 mr-2" />
+                                    Start Course
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    onClick={() => {
+                                      const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(course.title + ' preview')}`;
+                                      window.open(searchUrl, '_blank');
+                                    }}
+                                  >
+                                    <ExternalLink className="h-4 w-4 mr-2" />
+                                    Preview
+                                  </Button>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                          );
+                        });
+                      }
+                    })()}
+                    </div>
+                  ));
+                })()}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {loading && (
+          <Card className="mb-8 shadow-medium">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                <span>Generating AI-powered learning recommendations...</span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Tabs value={selectedPath} onValueChange={setSelectedPath} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
@@ -276,12 +558,46 @@ export const LearningPaths = ({ userSkills = [] }: LearningPathsProps) => {
                               Completed
                             </Button>
                           ) : (
-                            <Button size="sm" className="bg-gradient-primary">
+                            <Button 
+                              size="sm" 
+                              className="bg-gradient-primary"
+                              onClick={() => {
+                                // Map course titles to real course recommendations
+                                const skillMap: Record<string, string> = {
+                                  "Machine Learning Fundamentals": "Machine Learning",
+                                  "Deep Learning Specialization": "Machine Learning",
+                                  "MLOps Engineering": "Machine Learning",
+                                  "React - The Complete Guide": "React",
+                                  "Node.js Backend Development": "Node.js",
+                                  "Cloud Deployment & DevOps": "Cloud Computing"
+                                };
+                                
+                                const skill = skillMap[course.title] || course.title;
+                                const realCourses = getCourseRecommendations(skill);
+                                
+                                if (realCourses.length > 0) {
+                                  const enrollUrl = generateEnrollmentUrl(realCourses[0]);
+                                  window.open(enrollUrl, '_blank');
+                                } else {
+                                  // Fallback to course provider search
+                                  const searchUrl = `https://www.coursera.org/search?query=${encodeURIComponent(course.title)}`;
+                                  window.open(searchUrl, '_blank');
+                                }
+                              }}
+                            >
                               <Play className="h-4 w-4 mr-2" />
                               Start Course
                             </Button>
                           )}
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => {
+                              const skill = course.skills[0] || course.title;
+                              const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(skill + ' tutorial preview')}`;
+                              window.open(searchUrl, '_blank');
+                            }}
+                          >
                             <ExternalLink className="h-4 w-4 mr-2" />
                             Preview
                           </Button>
@@ -309,7 +625,13 @@ export const LearningPaths = ({ userSkills = [] }: LearningPathsProps) => {
           <CardContent>
             <div className="grid md:grid-cols-3 gap-4">
               {supplementaryContent.map((content, index) => (
-                <div key={index} className="bg-accent p-4 rounded-lg">
+                <div 
+                  key={index} 
+                  className="bg-accent p-4 rounded-lg cursor-pointer hover:bg-accent/80 transition-all duration-200 hover:shadow-md border border-transparent hover:border-primary/20"
+                  onClick={() => {
+                    window.open(content.url, '_blank');
+                  }}
+                >
                   <div className="flex items-start justify-between mb-2">
                     <Badge variant="outline" className="text-xs">
                       {content.type}
@@ -319,9 +641,13 @@ export const LearningPaths = ({ userSkills = [] }: LearningPathsProps) => {
                       {content.rating}
                     </div>
                   </div>
-                  <h4 className="font-medium mb-1">{content.title}</h4>
+                  <h4 className="font-medium mb-2 hover:text-primary transition-colors">{content.title}</h4>
+                  <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{content.description}</p>
                   <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <span>{content.source}</span>
+                    <span className="flex items-center gap-1">
+                      <ExternalLink className="h-3 w-3" />
+                      {content.source}
+                    </span>
                     <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
                       {content.readTime}

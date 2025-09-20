@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import { Eye, EyeOff, Loader2, Brain } from 'lucide-react';
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -19,12 +19,19 @@ const Auth = () => {
     lastName: '',
   });
 
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect if user is already authenticated
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate('/', { replace: true });
+    }
+  }, [user, authLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setIsSubmitting(true);
 
     try {
       let result;
@@ -38,19 +45,26 @@ const Auth = () => {
         toast({
           variant: "destructive",
           title: "Authentication Error",
-          description: result.error.message || "An error occurred during authentication",
+          description: result.error || "An error occurred during authentication",
         });
       } else {
         toast({
           title: isLogin ? "Welcome back!" : "Account created!",
           description: isLogin 
             ? "You've successfully signed in to your AI Career Advisor." 
-            : "Please check your email to confirm your account.",
+            : "Let's get started with your career assessment!",
         });
         
-        if (isLogin) {
-          navigate('/');
-        }
+        // Small delay to ensure auth state is updated before navigation
+        setTimeout(() => {
+          if (isLogin) {
+            // Existing users go to main page
+            navigate('/', { replace: true });
+          } else {
+            // New users go directly to assessment page with a special flag
+            navigate('/?page=assessment&newUser=true', { replace: true });
+          }
+        }, 100);
       }
     } catch (error) {
       toast({
@@ -59,7 +73,7 @@ const Auth = () => {
         description: "Something went wrong. Please try again.",
       });
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -165,9 +179,9 @@ const Auth = () => {
               <Button 
                 type="submit" 
                 className="w-full bg-gradient-primary hover:bg-primary-hover"
-                disabled={loading}
+                disabled={isSubmitting}
               >
-                {loading ? (
+                {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     {isLogin ? 'Signing In...' : 'Creating Account...'}

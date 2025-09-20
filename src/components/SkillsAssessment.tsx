@@ -14,6 +14,7 @@ interface Skill {
 
 interface SkillsAssessmentProps {
   onComplete: (data: { skills: Skill[]; interests: string[]; experience: string }) => void;
+  isNewUser?: boolean;
 }
 
 const suggestedSkills = [
@@ -27,7 +28,7 @@ const interestAreas = [
   "Design", "Sales", "Operations", "Research", "Consulting"
 ];
 
-export const SkillsAssessment = ({ onComplete }: SkillsAssessmentProps) => {
+export const SkillsAssessment = ({ onComplete, isNewUser = false }: SkillsAssessmentProps) => {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [newSkill, setNewSkill] = useState("");
   const [interests, setInterests] = useState<string[]>([]);
@@ -64,6 +65,14 @@ export const SkillsAssessment = ({ onComplete }: SkillsAssessmentProps) => {
     <section className="py-20 bg-secondary">
       <div className="container mx-auto px-6">
         <div className="text-center mb-12">
+          {isNewUser && (
+            <div className="mb-6 p-4 bg-primary/10 rounded-lg border border-primary/20">
+              <p className="text-lg font-medium text-primary mb-2">🎉 Welcome to AI Career Advisor!</p>
+              <p className="text-muted-foreground">
+                Let's start by learning about your background to provide personalized career recommendations.
+              </p>
+            </div>
+          )}
           <h2 className="text-4xl font-bold text-foreground mb-4">
             Tell Us About Yourself
           </h2>

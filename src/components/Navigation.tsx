@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Brain, TrendingUp, BookOpen, Target, Menu, User2, LogOut } from "lucide-react";
+import { Brain, TrendingUp, BookOpen, Target, Menu, User2, LogOut, Briefcase } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -19,6 +19,7 @@ export const Navigation = ({ currentPage, onNavigate }: NavigationProps) => {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Brain },
     { id: 'careers', label: 'Career Paths', icon: Target },
+    { id: 'jobs', label: 'Jobs', icon: Briefcase },
     { id: 'learning', label: 'Learning Paths', icon: BookOpen },
     { id: 'market', label: 'Market Intelligence', icon: TrendingUp },
   ];
