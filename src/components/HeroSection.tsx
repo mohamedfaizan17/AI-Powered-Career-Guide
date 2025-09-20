@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Brain, Target, TrendingUp } from "lucide-react";
+import { ArrowRight, Brain, Target, TrendingUp, LogIn } from "lucide-react";
+import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-career-advisor.jpg";
 
 interface HeroSectionProps {
@@ -34,13 +35,17 @@ export const HeroSection = ({ onGetStarted }: HeroSectionProps) => {
                 Get Started Free
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button 
-                variant="outline" 
-                size="lg"
-                className="border-white/30 text-white hover:bg-white/10 bg-transparent"
-              >
-                Watch Demo
-              </Button>
+              
+              <Link to="/auth">
+                <Button 
+                  variant="outline" 
+                  size="lg"
+                  className="border-white/30 text-white hover:bg-white/10 bg-transparent"
+                >
+                  <LogIn className="mr-2 h-5 w-5" />
+                  Sign In
+                </Button>
+              </Link>
             </div>
 
             <div className="grid grid-cols-3 gap-6 pt-8">

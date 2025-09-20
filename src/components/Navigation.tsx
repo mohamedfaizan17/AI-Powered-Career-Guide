@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { Brain, TrendingUp, BookOpen, Target, Menu } from "lucide-react";
+import { Brain, TrendingUp, BookOpen, Target, Menu, User2, LogOut } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 interface NavigationProps {
   currentPage: string;
@@ -8,6 +9,11 @@ interface NavigationProps {
 }
 
 export const Navigation = ({ currentPage, onNavigate }: NavigationProps) => {
+  const { user, signOut } = useAuth();
+  
+  const handleSignOut = async () => {
+    await signOut();
+  };
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
@@ -51,6 +57,24 @@ export const Navigation = ({ currentPage, onNavigate }: NavigationProps) => {
                 </Button>
               );
             })}
+            
+            {/* User Profile Section */}
+            <div className="flex items-center gap-4 ml-6 pl-6 border-l">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <User2 className="h-4 w-4" />
+                <span className="hidden lg:inline">{user?.email}</span>
+              </div>
+              
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={handleSignOut}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
           </div>
 
           {/* Mobile Menu Button */}
@@ -67,7 +91,7 @@ export const Navigation = ({ currentPage, onNavigate }: NavigationProps) => {
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-          <div className="md:hidden py-4 border-t">
+          <div className="md:hidden py-4 border-t space-y-4">
             <div className="space-y-1">
               {navItems.map((item) => {
                 const Icon = item.icon;
@@ -86,6 +110,24 @@ export const Navigation = ({ currentPage, onNavigate }: NavigationProps) => {
                   </Button>
                 );
               })}
+            </div>
+            
+            {/* Mobile User Section */}
+            <div className="pt-4 border-t">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                <User2 className="h-4 w-4" />
+                <span>{user?.email}</span>
+              </div>
+              
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={handleSignOut}
+                className="w-full justify-start text-muted-foreground hover:text-foreground"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </Button>
             </div>
           </div>
         )}
