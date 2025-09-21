@@ -29,7 +29,7 @@ import {
   Lightbulb,
   ExternalLink
 } from "lucide-react";
-import { generateCareerRecommendations, type CareerRecommendation, type UserProfile } from "@/lib/gemini";
+import { generateCareerRecommendations, type CareerRecommendation, type UserProfile, ResumeAnalysisResult } from "@/lib/gemini";
 import { testGeminiAPI } from "@/lib/test-gemini";
 
 interface Skill {
@@ -45,6 +45,7 @@ interface AssessmentData {
 
 interface CareerRecommendationsProps {
   assessmentData: AssessmentData;
+  resumeAnalysis?: ResumeAnalysisResult;
   onStartLearningPath?: (careerTitle: string) => void;
   onNavigateToJobs?: (jobTitle?: string) => void;
 }
@@ -129,7 +130,7 @@ const generateEnhancedRecommendations = (data: AssessmentData) => {
   return recommendations.sort((a, b) => b.match - a.match);
 };
 
-export const EnhancedCareerRecommendations = ({ assessmentData, onStartLearningPath, onNavigateToJobs }: CareerRecommendationsProps) => {
+export const EnhancedCareerRecommendations = ({ assessmentData, resumeAnalysis, onStartLearningPath, onNavigateToJobs }: CareerRecommendationsProps) => {
   const [recommendations, setRecommendations] = useState<CareerRecommendation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -153,9 +154,11 @@ export const EnhancedCareerRecommendations = ({ assessmentData, onStartLearningP
         const userProfile: UserProfile = {
           skills: assessmentData.skills,
           interests: assessmentData.interests,
-          experience: assessmentData.experience
+          experience: assessmentData.experience,
+          resumeAnalysis: resumeAnalysis // Include resume analysis for better recommendations
         };
 
+        console.log('Generating career recommendations with resume data:', userProfile);
         const aiRecommendations = await generateCareerRecommendations(userProfile);
         setRecommendations(aiRecommendations);
       } catch (err) {

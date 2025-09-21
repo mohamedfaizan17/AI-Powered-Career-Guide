@@ -83,10 +83,38 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signOut = async () => {
     try {
+      // Clear auth token
       localStorage.removeItem('auth_token');
+      
+      // Clear all user-specific data to ensure clean logout
+      if (user) {
+        const assessmentKey = `assessment_${user.id}`;
+        const resumeKey = `resume_analysis_${user.id}`;
+        
+        console.log('Clearing user data on logout:', { assessmentKey, resumeKey });
+        localStorage.removeItem(assessmentKey);
+        localStorage.removeItem(resumeKey);
+      }
+      
+      // Clear any other user-specific keys that might exist
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('assessment_') || key.startsWith('resume_analysis_'))) {
+          keysToRemove.push(key);
+        }
+      }
+      
+      keysToRemove.forEach(key => {
+        console.log('Removing localStorage key:', key);
+        localStorage.removeItem(key);
+      });
+      
       setUser(null);
+      console.log('User signed out and data cleared');
       return {};
     } catch (error) {
+      console.error('Error during sign out:', error);
       return { error: 'Failed to sign out' };
     }
   };

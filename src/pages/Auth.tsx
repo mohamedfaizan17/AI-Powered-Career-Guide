@@ -49,10 +49,11 @@ const Auth = () => {
         });
       } else {
         toast({
-          title: isLogin ? "Welcome back!" : "Account created!",
+          variant: "success" as any,
+          title: isLogin ? "🎉 Welcome back!" : "🎉 Account created successfully!",
           description: isLogin 
-            ? "You've successfully signed in to your AI Career Advisor." 
-            : "Let's get started with your career assessment!",
+            ? "You've successfully signed in to your AI Career Advisor. Ready to explore your career opportunities!" 
+            : "Your account has been created! Let's get started with your personalized career assessment.",
         });
         
         // Small delay to ensure auth state is updated before navigation

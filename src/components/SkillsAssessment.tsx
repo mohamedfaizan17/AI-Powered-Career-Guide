@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { X, Plus, Check } from "lucide-react";
+import { ResumeAnalyzer } from "./ResumeAnalyzer";
+import { ResumeProfileDisplay } from "./ResumeProfileDisplay";
+import { ResumeAnalysisResult } from "@/lib/gemini";
 
 interface Skill {
   name: string;
@@ -13,14 +16,24 @@ interface Skill {
 }
 
 interface SkillsAssessmentProps {
-  onComplete: (data: { skills: Skill[]; interests: string[]; experience: string }) => void;
+  onComplete: (data: { skills: Skill[]; interests: string[]; experience: string }, resumeAnalysis?: ResumeAnalysisResult) => void;
   isNewUser?: boolean;
+  existingData?: {
+    skills: Skill[];
+    interests: string[];
+    experience: string;
+  };
+  existingResumeAnalysis?: ResumeAnalysisResult;
 }
 
 const suggestedSkills = [
   "JavaScript", "Python", "React", "Node.js", "SQL", "Machine Learning",
   "Project Management", "Communication", "Leadership", "Data Analysis",
-  "Digital Marketing", "UI/UX Design", "Cloud Computing", "Agile"
+  "Digital Marketing", "UI/UX Design", "Cloud Computing", "Agile",
+  "HTML", "CSS", "TypeScript", "Git", "MongoDB", "PostgreSQL",
+  "Docker", "AWS", "Azure", "DevOps", "REST APIs", "GraphQL",
+  "Vue.js", "Angular", "Express.js", "Spring Boot", "Django",
+  "Kubernetes", "Jenkins", "Terraform", "Redis", "Elasticsearch"
 ];
 
 const interestAreas = [
@@ -28,11 +41,30 @@ const interestAreas = [
   "Design", "Sales", "Operations", "Research", "Consulting"
 ];
 
-export const SkillsAssessment = ({ onComplete, isNewUser = false }: SkillsAssessmentProps) => {
-  const [skills, setSkills] = useState<Skill[]>([]);
+export const SkillsAssessment = ({ 
+  onComplete, 
+  isNewUser = false, 
+  existingData, 
+  existingResumeAnalysis 
+}: SkillsAssessmentProps) => {
+  const [skills, setSkills] = useState<Skill[]>(existingData?.skills || []);
   const [newSkill, setNewSkill] = useState("");
-  const [interests, setInterests] = useState<string[]>([]);
-  const [experience, setExperience] = useState("");
+  const [interests, setInterests] = useState<string[]>(existingData?.interests || []);
+  const [experience, setExperience] = useState(existingData?.experience || "");
+  const [resumeAnalysis, setResumeAnalysis] = useState<ResumeAnalysisResult | null>(existingResumeAnalysis || null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  // Update state when existing data changes
+  useEffect(() => {
+    if (existingData) {
+      setSkills(existingData.skills || []);
+      setInterests(existingData.interests || []);
+      setExperience(existingData.experience || "");
+    }
+    if (existingResumeAnalysis) {
+      setResumeAnalysis(existingResumeAnalysis);
+    }
+  }, [existingData, existingResumeAnalysis]);
 
   const addSkill = (skillName: string) => {
     if (skillName && !skills.find(s => s.name.toLowerCase() === skillName.toLowerCase())) {
@@ -57,8 +89,60 @@ export const SkillsAssessment = ({ onComplete, isNewUser = false }: SkillsAssess
     );
   };
 
+  const handleResumeAnalysis = (analysis: ResumeAnalysisResult) => {
+    setResumeAnalysis(analysis);
+    setIsAnalyzing(false); // Analysis completed
+    
+    // Auto-populate skills from resume analysis
+    const resumeSkills = analysis.skills.map(skill => ({
+      name: skill,
+      level: 3 // Default to intermediate level
+    }));
+    
+    // Merge with existing skills, avoiding duplicates
+    const existingSkillNames = skills.map(s => s.name.toLowerCase());
+    const newSkills = resumeSkills.filter(skill => 
+      !existingSkillNames.includes(skill.name.toLowerCase())
+    );
+    
+    setSkills(prev => [...prev, ...newSkills]);
+    
+    // Auto-set experience level if not already set
+    if (!experience && analysis.experience) {
+      setExperience(analysis.experience);
+    }
+    
+    // Auto-populate interests based on resume content
+    const techInterests = ["Technology"];
+    const resumeText = analysis.summary.toLowerCase();
+    
+    if (resumeText.includes('health') || resumeText.includes('medical')) {
+      techInterests.push("Healthcare");
+    }
+    if (resumeText.includes('finance') || resumeText.includes('banking')) {
+      techInterests.push("Finance");
+    }
+    if (resumeText.includes('education') || resumeText.includes('teaching')) {
+      techInterests.push("Education");
+    }
+    if (resumeText.includes('design') || resumeText.includes('ui') || resumeText.includes('ux')) {
+      techInterests.push("Design");
+    }
+    if (resumeText.includes('marketing') || resumeText.includes('sales')) {
+      techInterests.push("Marketing");
+    }
+    
+    // Add inferred interests if not already selected
+    const newInterests = techInterests.filter(interest => !interests.includes(interest));
+    setInterests(prev => [...prev, ...newInterests]);
+  };
+
+  const handleAnalysisStart = () => {
+    setIsAnalyzing(true);
+  };
+
   const handleSubmit = () => {
-    onComplete({ skills, interests, experience });
+    onComplete({ skills, interests, experience }, resumeAnalysis);
   };
 
   return (
@@ -74,21 +158,70 @@ export const SkillsAssessment = ({ onComplete, isNewUser = false }: SkillsAssess
             </div>
           )}
           <h2 className="text-4xl font-bold text-foreground mb-4">
-            Tell Us About Yourself
+            {(existingData || resumeAnalysis) ? "Review & Update Your Profile" : "Tell Us About Yourself"}
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Help our AI understand your skills, interests, and experience to provide 
-            the most accurate career recommendations.
+            {(existingData || resumeAnalysis) 
+              ? "Review your information below and make any updates. Your previous analysis is preserved."
+              : "Help our AI understand your skills, interests, and experience to provide the most accurate career recommendations."
+            }
           </p>
         </div>
 
         <div className="max-w-4xl mx-auto space-y-8">
+          {/* Resume Analyzer Section - Always show, but with different messaging */}
+          <div className="mb-8">
+            {existingResumeAnalysis && !isNewUser && (
+              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h3 className="font-semibold text-blue-800 mb-2">📄 Update Your Resume Analysis</h3>
+                <p className="text-blue-700 text-sm">
+                  Upload a new resume or paste updated content to refresh your career analysis and recommendations.
+                </p>
+              </div>
+            )}
+            <ResumeAnalyzer 
+              onAnalysisComplete={handleResumeAnalysis}
+              onAnalysisStart={handleAnalysisStart}
+              className=""
+            />
+          </div>
+
+          {/* Show Previous Resume Analysis if Available */}
+          {resumeAnalysis && (
+            <div className="mb-8 relative">
+            
+              <div className="relative">
+                <ResumeProfileDisplay 
+                  resumeAnalysis={resumeAnalysis}
+                  onContinueToRecommendations={() => {
+                    // Navigate to career recommendations
+                    onComplete({ skills, interests, experience }, resumeAnalysis);
+                  }}
+                />
+                {/* Loading overlay during analysis */}
+                {isAnalyzing && (
+                  <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-lg flex items-center justify-center z-10">
+                    <div className="text-center p-6">
+                      <div className="w-12 h-12 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                        <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">🔄 Updating Analysis</h3>
+                      <p className="text-sm text-gray-600">
+                        Processing your updated resume...
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Skills Section */}
           <Card className="shadow-medium">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm font-bold">1</div>
-                Your Skills
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm font-bold">{resumeAnalysis ? '2' : '1'}</div>
+                Your Skills {resumeAnalysis && <span className="text-sm text-muted-foreground ml-2">(Auto-populated from resume)</span>}
               </CardTitle>
               <CardDescription>
                 Add your current skills and rate your proficiency level (1-5)
@@ -166,8 +299,8 @@ export const SkillsAssessment = ({ onComplete, isNewUser = false }: SkillsAssess
           <Card className="shadow-medium">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm font-bold">2</div>
-                Your Interests
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm font-bold">{resumeAnalysis ? '3' : '2'}</div>
+                Your Interests {resumeAnalysis && <span className="text-sm text-muted-foreground ml-2">(Some auto-selected from resume)</span>}
               </CardTitle>
               <CardDescription>
                 Select the industries and areas that interest you most
@@ -194,8 +327,8 @@ export const SkillsAssessment = ({ onComplete, isNewUser = false }: SkillsAssess
           <Card className="shadow-medium">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm font-bold">3</div>
-                Experience Level
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm font-bold">{resumeAnalysis ? '4' : '3'}</div>
+                Experience Level {resumeAnalysis && <span className="text-sm text-muted-foreground ml-2">(Auto-detected from resume)</span>}
               </CardTitle>
               <CardDescription>
                 What best describes your current experience level?
@@ -226,7 +359,7 @@ export const SkillsAssessment = ({ onComplete, isNewUser = false }: SkillsAssess
               size="lg"
               className="bg-gradient-primary hover:bg-primary-hover shadow-medium"
             >
-              Get My Career Recommendations
+              {(existingData || resumeAnalysis) ? "Update My Profile" : "Get My Career Recommendations"}
             </Button>
           </div>
         </div>

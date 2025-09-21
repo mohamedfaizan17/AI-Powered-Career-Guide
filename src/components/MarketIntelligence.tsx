@@ -351,54 +351,105 @@ export const MarketIntelligence = () => {
           </Card>
         </div>
 
-        {/* Industry Insights */}
-        <div className="mt-8">
-          <Card className="shadow-medium">
+        {/* Industry Growth & Decline Analysis */}
+        <div className="mt-8 grid lg:grid-cols-2 gap-8">
+          {/* Growing Industries */}
+          <Card className="shadow-medium border-green-200 bg-green-50/30">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-accent-foreground" />
-                Industry Growth Insights
+              <CardTitle className="flex items-center gap-2 text-green-700">
+                <TrendingUp className="h-5 w-5" />
+                🚀 Fastest Growing Industries
               </CardTitle>
               <CardDescription>
-                Key drivers and risk factors across major industries
+                Industries experiencing explosive growth and high demand
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {marketData?.industryInsights.map((industry) => (
-                  <div key={industry.industry} className="space-y-4">
-                    <div className="text-center">
-                      <h4 className="text-lg font-semibold">{industry.industry}</h4>
-                      <div className="text-2xl font-bold text-success mt-1">{industry.growth}</div>
-                      <p className="text-sm text-muted-foreground">YoY Growth</p>
+              <div className="space-y-4">
+                {marketData?.industryInsights
+                  .filter(industry => parseFloat(industry.growth.replace('%', '').replace('+', '')) > 25)
+                  .sort((a, b) => parseFloat(b.growth.replace('%', '').replace('+', '')) - parseFloat(a.growth.replace('%', '').replace('+', '')))
+                  .map((industry) => (
+                  <div key={industry.industry} className="bg-white p-4 rounded-lg border border-green-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold text-green-800">{industry.industry}</h4>
+                      <div className="text-xl font-bold text-green-600">{industry.growth}</div>
                     </div>
-                    
-                    <div className="space-y-3">
+                    <p className="text-sm text-green-700 mb-3">{industry.forecast}</p>
+                    <div className="space-y-2">
                       <div>
-                        <h5 className="font-medium text-sm mb-2 text-success">Growth Drivers</h5>
-                        <div className="space-y-1">
-                          {industry.keyDrivers.map((driver) => (
-                            <Badge key={driver} variant="outline" className="text-xs mr-1 mb-1 bg-success/10 text-success border-success/20">
+                        <h5 className="font-medium text-xs mb-1 text-green-600">Key Growth Drivers:</h5>
+                        <div className="flex flex-wrap gap-1">
+                          {industry.keyDrivers.slice(0, 3).map((driver) => (
+                            <Badge key={driver} variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
                               {driver}
                             </Badge>
                           ))}
                         </div>
                       </div>
-                      
+                      <p className="text-xs text-green-600">Market Size: {industry.marketSize}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Declining/Stable Industries */}
+          <Card className="shadow-medium border-orange-200 bg-orange-50/30">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-orange-700">
+                <TrendingDown className="h-5 w-5" />
+                📉 Declining & At-Risk Industries
+              </CardTitle>
+              <CardDescription>
+                Industries facing challenges and slower growth
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* Add some declining industries data */}
+                {[
+                  {
+                    industry: "Traditional Retail",
+                    growth: "-8%",
+                    riskFactors: ["E-commerce Competition", "Changing Consumer Behavior", "High Real Estate Costs"],
+                    forecast: "Continued decline with digital transformation needs",
+                    marketSize: "$4.9T (shrinking)"
+                  },
+                  {
+                    industry: "Print Media",
+                    growth: "-12%",
+                    riskFactors: ["Digital Media Shift", "Advertising Revenue Loss", "Subscription Decline"],
+                    forecast: "Steep decline with niche market survival",
+                    marketSize: "$147B (declining)"
+                  },
+                  {
+                    industry: "Legacy Banking",
+                    growth: "-3%",
+                    riskFactors: ["Fintech Disruption", "Regulatory Pressure", "Digital-First Competitors"],
+                    forecast: "Transformation required for survival",
+                    marketSize: "$5.4T (stable)"
+                  }
+                ].map((industry) => (
+                  <div key={industry.industry} className="bg-white p-4 rounded-lg border border-orange-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold text-orange-800">{industry.industry}</h4>
+                      <div className="text-xl font-bold text-orange-600">{industry.growth}</div>
+                    </div>
+                    <p className="text-sm text-orange-700 mb-3">{industry.forecast}</p>
+                    <div className="space-y-2">
                       <div>
-                        <h5 className="font-medium text-sm mb-2 text-warning">Risk Factors</h5>
-                        <div className="space-y-1">
-                          {industry.riskFactors.map((risk) => (
-                            <Badge key={risk} variant="outline" className="text-xs mr-1 mb-1 bg-warning/10 text-warning border-warning/20">
+                        <h5 className="font-medium text-xs mb-1 text-orange-600">Risk Factors:</h5>
+                        <div className="flex flex-wrap gap-1">
+                          {industry.riskFactors.slice(0, 3).map((risk) => (
+                            <Badge key={risk} variant="outline" className="text-xs bg-orange-100 text-orange-700 border-orange-300">
                               {risk}
                             </Badge>
                           ))}
                         </div>
                       </div>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-xs text-muted-foreground">Market Size: {industry.marketSize}</p>
-                      <p className="text-xs text-muted-foreground">Forecast: {industry.forecast}</p>
+                      <p className="text-xs text-orange-600">Market Size: {industry.marketSize}</p>
                     </div>
                   </div>
                 ))}

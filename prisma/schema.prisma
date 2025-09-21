@@ -21,6 +21,7 @@ model User {
 
   // Relations
   skillsAssessments SkillsAssessment[]
+  resumeAnalyses    ResumeAnalysis[]
 
   @@map("users")
 }
@@ -39,4 +40,26 @@ model SkillsAssessment {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("skills_assessments")
+}
+
+model ResumeAnalysis {
+  id               String   @id @default(cuid())
+  userId           String
+  fileName         String?
+  fileType         String?
+  resumeText       String   // Original resume text
+  extractedSkills  String   // JSON array of skills
+  experienceLevel  String?
+  education        String   // JSON array of education
+  summary          String?
+  recommendations  String   // JSON array of recommendations
+  extractedInfo    String   // JSON object with contact info, work experience, projects
+  analysisDate     DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("resume_analyses")
 }

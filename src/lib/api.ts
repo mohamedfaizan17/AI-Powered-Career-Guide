@@ -63,3 +63,29 @@ export const saveSkillsAssessment = async (assessment: {
 export const getSkillsAssessment = async () => {
   return apiCall('/skills-assessments/latest')
 }
+
+// Resume analysis API calls
+export const saveResumeAnalysis = async (analysis: {
+  fileName?: string
+  fileType?: string
+  resumeText: string
+  extractedSkills: string[]
+  experienceLevel?: string
+  education: string[]
+  summary?: string
+  recommendations: string[]
+  extractedInfo: any
+}) => {
+  return apiCall('/resume-analyses', {
+    method: 'POST',
+    body: JSON.stringify(analysis),
+  })
+}
+
+export const getResumeAnalyses = async () => {
+  return apiCall('/resume-analyses')
+}
+
+export const getLatestResumeAnalysis = async () => {
+  return apiCall('/resume-analyses/latest')
+}

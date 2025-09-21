@@ -128,51 +128,61 @@ export const generateMarketIntelligence = async (): Promise<{
         role: "AI/ML Engineer",
         growth: 44,
         openings: 13200,
-        avgSalary: "$128k",
-        locations: ["San Francisco", "New York", "Seattle", "Remote"],
+        avgSalary: "$128k / ₹25L",
+        locations: ["San Francisco", "New York", "Bangalore", "Hyderabad", "Remote"],
         trend: "up",
-        companies: ["Google", "OpenAI", "Microsoft", "Meta"],
+        companies: ["Google", "OpenAI", "Microsoft", "Meta", "Infosys", "TCS", "Wipro"],
         skills: ["Python", "TensorFlow", "PyTorch", "Machine Learning"]
       },
       {
         role: "Full Stack Developer", 
         growth: 27,
         openings: 47500,
-        avgSalary: "$98k",
-        locations: ["Austin", "Denver", "Remote", "Portland"],
+        avgSalary: "$98k / ₹18L",
+        locations: ["Austin", "Denver", "Mumbai", "Pune", "Remote"],
         trend: "up",
-        companies: ["Vercel", "Netlify", "Stripe", "Shopify"],
+        companies: ["Vercel", "Netlify", "Stripe", "Shopify", "Flipkart", "Zomato"],
         skills: ["React", "Node.js", "TypeScript", "Next.js"]
       },
       {
         role: "Cloud Architect",
         growth: 35,
         openings: 8900,
-        avgSalary: "$135k",
-        locations: ["Seattle", "San Francisco", "Remote", "Dallas"],
+        avgSalary: "$135k / ₹28L",
+        locations: ["Seattle", "San Francisco", "Bangalore", "Chennai", "Remote"],
         trend: "up",
-        companies: ["AWS", "Microsoft", "Google Cloud", "Cloudflare"],
+        companies: ["AWS", "Microsoft", "Google Cloud", "Cloudflare", "Accenture", "HCL"],
         skills: ["AWS", "Azure", "Kubernetes", "Docker"]
       },
       {
         role: "Product Manager",
         growth: 22,
         openings: 9100,
-        avgSalary: "$118k",
-        locations: ["Silicon Valley", "Boston", "Remote", "Chicago"],
+        avgSalary: "$118k / ₹22L",
+        locations: ["Silicon Valley", "Boston", "Bangalore", "Gurgaon", "Remote"],
         trend: "up",
-        companies: ["Meta", "Google", "Apple", "Stripe"],
+        companies: ["Meta", "Google", "Apple", "Stripe", "Paytm", "Swiggy"],
         skills: ["Product Strategy", "Data Analysis", "User Research", "Agile"]
       },
       {
         role: "Data Scientist",
         growth: 18,
         openings: 24500,
-        avgSalary: "$108k",
-        locations: ["New York", "San Francisco", "Remote", "Boston"],
+        avgSalary: "$108k / ₹20L",
+        locations: ["New York", "San Francisco", "Mumbai", "Delhi", "Remote"],
         trend: "stable",
-        companies: ["Netflix", "Spotify", "Airbnb", "Uber"],
+        companies: ["Netflix", "Spotify", "Airbnb", "Uber", "Ola", "PhonePe"],
         skills: ["Python", "SQL", "Machine Learning", "Statistics"]
+      },
+      {
+        role: "Software Engineer",
+        growth: 32,
+        openings: 35000,
+        avgSalary: "$95k / ₹16L",
+        locations: ["Bangalore", "Hyderabad", "Chennai", "Pune", "Remote"],
+        trend: "up",
+        companies: ["Amazon", "Microsoft", "Google", "Flipkart", "Byju's", "Freshworks"],
+        skills: ["Java", "Python", "JavaScript", "System Design"]
       }
     ];
 

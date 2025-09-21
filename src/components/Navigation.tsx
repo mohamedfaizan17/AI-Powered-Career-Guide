@@ -49,7 +49,7 @@ export const Navigation = ({ currentPage, onNavigate }: NavigationProps) => {
               return (
                 <Button
                   key={item.id}
-                  variant={currentPage === item.id ? "default" : "ghost"}
+                  variant={(currentPage === item.id || (item.id === 'dashboard' && currentPage === 'assessment')) ? "default" : "ghost"}
                   onClick={() => onNavigate(item.id)}
                   className="flex items-center gap-2"
                 >
@@ -99,7 +99,7 @@ export const Navigation = ({ currentPage, onNavigate }: NavigationProps) => {
                 return (
                   <Button
                     key={item.id}
-                    variant={currentPage === item.id ? "default" : "ghost"}
+                    variant={(currentPage === item.id || (item.id === 'dashboard' && currentPage === 'assessment')) ? "default" : "ghost"}
                     onClick={() => {
                       onNavigate(item.id);
                       setIsMobileMenuOpen(false);
