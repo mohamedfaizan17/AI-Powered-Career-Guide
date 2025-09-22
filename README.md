@@ -1,73 +1,185 @@
-# Welcome to your Lovable project
+# AI Career Advisor 🚀
 
-## Project info
+A comprehensive AI-powered career guidance platform that helps users analyze their resumes, assess their skills, and receive personalized career recommendations tailored to the global and Indian job markets.
 
-**URL**: https://lovable.dev/projects/c0bd48a3-efd9-446d-807e-8009fbe23b0a
+## 🌟 Features
 
-## How can I edit this code?
+### 📄 Resume Analysis
+- **AI-Powered Analysis**: Upload PDF/Word documents or paste resume text for comprehensive analysis
+- **Skills Extraction**: Automatically identifies and categorizes technical and soft skills
+- **Experience Assessment**: Evaluates professional experience level and career trajectory
+- **Contact Integration**: Extracts and displays professional contact information
 
-There are several ways of editing your application.
+### 🎯 Career Recommendations
+- **Personalized Suggestions**: AI-generated career paths based on resume analysis
+- **Market Intelligence**: Real-time job market trends and salary insights
+- **Global & Indian Markets**: Comprehensive coverage of opportunities in major tech hubs
+- **Growth Analysis**: Identifies fastest-growing and declining industries
 
-**Use Lovable**
+### 🔐 User Management
+- **Secure Authentication**: Email/password authentication with JWT tokens
+- **Data Persistence**: Resume analysis and career data saved across sessions
+- **Profile Management**: Comprehensive user profile with skills tracking
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/c0bd48a3-efd9-446d-807e-8009fbe23b0a) and start prompting.
+### 🤖 AI Integration
+- **Gemini AI**: Google's Gemini AI for advanced resume analysis
+- **Grok AI**: Optional X.AI Grok integration for enhanced insights
+- **Fallback System**: Robust analysis even when AI services are unavailable
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🛠️ Technology Stack
 
-**Use your preferred IDE**
+- **Frontend**: React 18, TypeScript, Vite
+- **UI Framework**: shadcn-ui components with Tailwind CSS
+- **Database**: SQLite with Prisma ORM
+- **Authentication**: JWT-based secure authentication
+- **AI Services**: Google Gemini AI, X.AI Grok (optional)
+- **State Management**: React Query for server state
+- **Routing**: React Router v6
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 📋 Prerequisites
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- **Node.js** (v18 or higher) - [Install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- **npm** or **yarn** package manager
+- **Git** for version control
 
-Follow these steps:
+## 🚀 Quick Start
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+### 1. Clone the Repository
+```bash
 git clone <YOUR_GIT_URL>
+cd GenAI
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### 2. Install Dependencies
+```bash
+npm install
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+### 3. Environment Setup
+Copy the example environment file and configure your settings:
+```bash
+cp .env.example .env
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+Edit the `.env` file with your configuration:
+```env
+# Database Configuration
+DATABASE_URL="file:./dev.db"
+
+# JWT Secret (Change this in production!)
+JWT_SECRET="your-super-secret-jwt-key-change-this-in-production"
+
+# Google Gemini AI Configuration
+# Get your API key from: https://makersuite.google.com/app/apikey
+VITE_GEMINI_API_KEY="your-gemini-api-key-here"
+
+# Grok AI Configuration (Optional)
+# Get your API key from: https://console.x.ai/
+GROK_API_KEY="your-grok-api-key-here"
+```
+
+### 4. Database Setup
+Initialize and set up the database:
+```bash
+npm run db:generate
+npm run db:push
+```
+
+### 5. Start Development Server
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The application will be available at `http://localhost:5173`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 🔧 Available Scripts
 
-**Use GitHub Codespaces**
+- `npm run dev` - Start development server with hot reload
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build locally
+- `npm run lint` - Run ESLint for code quality
+- `npm run db:generate` - Generate Prisma client
+- `npm run db:push` - Push database schema changes
+- `npm run db:studio` - Open Prisma Studio for database management
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🔑 API Keys Setup
 
-## What technologies are used for this project?
+### Google Gemini AI (Required)
+1. Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Create a new API key
+3. Add it to your `.env` file as `VITE_GEMINI_API_KEY`
 
-This project is built with:
+### Grok AI (Optional)
+1. Visit [X.AI Console](https://console.x.ai/)
+2. Create an account and generate an API key
+3. Add it to your `.env` file as `GROK_API_KEY`
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 📁 Project Structure
 
-## How can I deploy this project?
+```
+src/
+├── components/          # Reusable UI components
+│   ├── ui/             # shadcn-ui components
+│   ├── ResumeAnalyzer/ # Resume analysis components
+│   └── Navigation/     # Navigation components
+├── hooks/              # Custom React hooks
+├── lib/                # Utility functions and services
+│   ├── auth.ts        # Authentication utilities
+│   ├── gemini.ts      # Gemini AI integration
+│   ├── grok.ts        # Grok AI integration
+│   └── db.ts          # Database utilities
+├── pages/              # Page components
+└── assets/             # Static assets
+```
 
-Simply open [Lovable](https://lovable.dev/projects/c0bd48a3-efd9-446d-807e-8009fbe23b0a) and click on Share -> Publish.
+## 🎨 Key Features Walkthrough
 
-## Can I connect a custom domain to my Lovable project?
+1. **User Registration/Login**: Secure authentication system
+2. **Resume Upload**: Drag-and-drop or text paste functionality
+3. **AI Analysis**: Comprehensive resume analysis with skills extraction
+4. **Career Recommendations**: Personalized career paths and market insights
+5. **Data Persistence**: All analysis data saved for future reference
 
-Yes, you can!
+## 🌐 Deployment
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Production Build
+```bash
+npm run build
+```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+### Environment Variables for Production
+Ensure all environment variables are properly set:
+- Update `JWT_SECRET` with a secure random string
+- Configure production database URL
+- Set up AI API keys
+
+## 🔒 Security Features
+
+- JWT-based authentication
+- Password hashing with bcrypt
+- Environment variable protection
+- Secure API key management
+- Input validation and sanitization
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is private and proprietary.
+
+## 🆘 Support
+
+For support and questions:
+- Check the documentation in the `/docs` folder
+- Review the setup guides: `GEMINI_SETUP.md`, `GROK_API_SETUP.md`
+- Open an issue in the repository
+
+---
+
+**Built with ❤️ using React, TypeScript, and AI technologies**
